@@ -1040,6 +1040,8 @@ def load_models_from_stable_diffusion_checkpoint(v2, ckpt_path, device="cpu", dt
             transformers_version="4.25.0.dev0",
         )
         text_model = CLIPTextModel._from_config(cfg)
+        # Newer transformers register position_ids as a non-persistent buffer.
+        converted_text_encoder_checkpoint.pop("text_model.embeddings.position_ids", None)
         info = text_model.load_state_dict(converted_text_encoder_checkpoint)
     else:
         converted_text_encoder_checkpoint = convert_ldm_clip_checkpoint_v1(state_dict)
@@ -1069,6 +1071,8 @@ def load_models_from_stable_diffusion_checkpoint(v2, ckpt_path, device="cpu", dt
             torch_dtype="float32",
         )
         text_model = CLIPTextModel._from_config(cfg)
+        # Newer transformers register position_ids as a non-persistent buffer.
+        converted_text_encoder_checkpoint.pop("text_model.embeddings.position_ids", None)
         info = text_model.load_state_dict(converted_text_encoder_checkpoint)
     print("loading text encoder:", info)
 

@@ -1,0 +1,188 @@
+{
+  "id": "904f5167-7802-4b97-9c25-0be02568634a",
+  "revision": 0,
+  "last_node_id": 3,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        -500,
+        -310
+      ],
+      "size": [
+        520,
+        620
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "训练说明",
+      "properties": {},
+      "widgets_values": [
+        "# 小龙专属 LoRA｜训练工作流\n\n## 训练对象\n- 10 张原始图片来自 `C:/Users/tony/Pictures/Lora/`\n- 通过感知哈希去掉 2 张近重复图，实际训练 8 张唯一图片\n- 触发词：`tldragon`\n- 底模：`SD1.5/2.5D/2.5D_disneyPixarCartoon_v10.safetensors`\n\n## 当前参数\n- `data_path`：`/home/changjie/comfy/ComfyUI/my_workflows/default/workflows/练习测试/小龙专属LoRA/training_data`\n- 数据目录：`10_tldragon_mascot`\n- 每张重复 10 次\n- 8 张 × 10 次 = 80 step/epoch\n- 10 epochs = 800 steps\n- batch size：1\n- 每 5 epochs 保存\n- 输出：`models/loras/tldragon_mascot_v1.safetensors`\n\n这套参数已经实际训练成功。再次运行时建议保留 `output_name`，会覆盖同名模型。\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 2,
+      "type": "Lora Training in ComfyUI",
+      "pos": [
+        70,
+        20
+      ],
+      "size": [
+        500,
+        520
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "底模",
+          "name": "ckpt_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "ckpt_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "训练数据父目录",
+          "name": "data_path",
+          "type": "STRING",
+          "widget": {
+            "name": "data_path"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "批大小",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "训练轮数",
+          "name": "max_train_epoches",
+          "type": "INT",
+          "widget": {
+            "name": "max_train_epoches"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "保存间隔",
+          "name": "save_every_n_epochs",
+          "type": "INT",
+          "widget": {
+            "name": "save_every_n_epochs"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "LoRA 名称",
+          "name": "output_name",
+          "type": "STRING",
+          "widget": {
+            "name": "output_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "CLIP Skip",
+          "name": "clip_skip",
+          "type": "INT",
+          "widget": {
+            "name": "clip_skip"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "输出目录",
+          "name": "output_dir",
+          "type": "STRING",
+          "widget": {
+            "name": "output_dir"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Lora Training in ComfyUI"
+      },
+      "widgets_values": [
+        "SD1.5/2.5D/2.5D_disneyPixarCartoon_v10.safetensors",
+        "/home/changjie/comfy/ComfyUI/my_workflows/default/workflows/练习测试/小龙专属LoRA/training_data",
+        1,
+        10,
+        5,
+        "tldragon_mascot_v1",
+        2,
+        "models/loras"
+      ],
+      "title": "① 训练专属小龙 LoRA"
+    },
+    {
+      "id": 3,
+      "type": "MarkdownNote",
+      "pos": [
+        620,
+        20
+      ],
+      "size": [
+        440,
+        600
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "参数建议",
+      "properties": {},
+      "widgets_values": [
+        "## 使用提醒\n\n1. `data_path` 必须是 `10_tldragon_mascot` 的**父目录**。\n2. 点击运行后等待 800 steps 完成，日志出现 `model saved`。\n3. 训练完成后刷新 LoRA 列表，打开 `02_小龙生成器.json`。\n4. 如果想让角色更固定，可提高 epochs；如果背景或姿势过拟合，可减少 epochs。\n5. 当前 LoRA 强度推荐：模型 0.85–0.95，CLIP 0.75–0.85。\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    }
+  ],
+  "links": [],
+  "groups": [
+    {
+      "title": "小龙专属 LoRA｜ComfyUI 直接训练",
+      "bounding": [
+        -30,
+        -90
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        540,
+        360
+      ]
+    },
+    "workflowRendererVersion": "LG",
+    "workspace_info": {
+      "id": "d27f29d8-a9e4-4768-a774-6f0a19aed631"
+    }
+  },
+  "version": 0.4
+}

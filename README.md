@@ -1,87 +1,228 @@
-
-# UPDATE! (19-01-2024)
-Introducing an Advanced node and Access Tensorboard node!
-Access Tensorboard is a very simple node that launches a URL to see data about the logs created during training. Click the node once (after, during, or even before training!), then copy-paste the URL that it wrote in the command prompt. The logs folder related to Tensorboard is in the same folder as your launcher file.
-
-The Advanced node is full of many recommended features. Some are still missing, but they are here in the code, you just have to change their values manually! Not everything was tested, I personally don't even know what most of these do. Let me know if a certain feature doesn't work like it should!
-
-This node is now confirmed to work with LCMs, SD2.0 and SD Turbo models. I am not able to test for SDXL though.
-
-
-
-
-
 # Lora-Training-in-Comfy
 
-DISCLAIMER: This is my first "big" custom node. More specifically, it's the first I publish that has a lot of requirements. Therefore, it could conflict with other custom nodes. If it happens, please let me know so I update it accordingly!
+## ComfyUI 内直接训练 SD1.x / SD2.x LoRA
 
-This custom node lets you train LoRA directly in ComfyUI! By default, it saves directly in your ComfyUI lora folder. That means you just have to refresh after training (...and select the LoRA) to test it!
+这是 [LarryJane491/Lora-Training-in-Comfy](https://github.com/LarryJane491/Lora-Training-in-Comfy) 的兼容性维护分支，重点修复旧版训练脚本在当前 ComfyUI 环境中的兼容问题。
 
+> **适用范围：SD1.x / SD2.x**
+>
+> 当前节点调用仓库内的 `sd-scripts/train_network.py`，适用于 SD1.5、SD2.x，以及基于 SD1/SD2 架构的 SD Turbo、LCM 等模型。
+>
+> 不支持 SDXL、SD3.5、FLUX、Qwen-Image、LTX、Wan 等新架构。训练出的 LoRA 也只能用于与训练底模相同架构的模型。
 
-Making LoRA has never been easier!
+## 小龙案例
 
-I'll link my tutorial. Download it from here, then follow the guide:
+下面是用本仓库节点在 ComfyUI 内直接训练出的 `tldragon_mascot_v1` 案例，底模为 SD1.5 系列的 `2.5D_disneyPixarCartoon_v10`，触发词为 `tldragon`。
 
-https://www.reddit.com/r/StableDiffusion/comments/193hqkz/lora_training_directly_in_comfyui/
+### 训练集
 
-In short, you have to put it in custom_nodes and install the requirements (from requirements_win.txt if you're on Windows). Pretty standard for custom nodes!
-![LoRATrainingNode](https://github.com/LarryJane491/Lora-Training-in-Comfy/assets/156431112/ff9453a7-498e-4e26-a2b9-003f9667cbb2)
+10 张原始图中去掉 2 张近重复图，实际使用 8 张唯一图，每张有独立 caption。
 
-After installing, you can find it in the LJRE/LORA category or by double-clicking and searching for Training or LoRA.
-Make sure you have a folder containing multiple images with captions.
-Then, rename that folder into something like [number]_[whatever].
-Copy the path of the folder ABOVE the one containing images and paste it in data_path. For example, if it's in C:/database/5_images, data_path MUST be C:/database.
-Finally, just choose a name for the LoRA, and change the other values if you want. Then just click Queue Prompt and training starts!
+![小龙训练集](examples/tldragon/assets/training_contact_sheet.png)
 
-I recommend using it alongside my other custom nodes, LoRA Caption Load and LoRA Caption Save:
-![LoraCaption and Training](https://github.com/LarryJane491/Lora-Training-in-Comfy/assets/156431112/bd53593b-88f9-4a69-b4ff-5cad1b40294f)
+### 训练前后
 
-That way you just have to gather images, then you can do the captioning AND training, all inside Comfy! And since it saves LoRAs in the loras folder of Comfy by default, you just need to refresh and you can test it right away!
+同一提示词、同一种子、同一采样器，底模与 LoRA 的对比：
 
-Results from the first LoRA I got with my method:
+![小龙训练前后对比](examples/tldragon/assets/before_after.png)
 
-![w62yekl73obc1](https://github.com/LarryJane491/Lora-Training-in-Comfy/assets/156431112/480b5b7b-d6af-4472-a476-8f2fb94dfe0e)
-![am585t5h3obc1](https://github.com/LarryJane491/Lora-Training-in-Comfy/assets/156431112/0acad9ef-23c0-490b-a2c0-f65fdfc4f1ad)
-![1wacnvrv5obc1](https://github.com/LarryJane491/Lora-Training-in-Comfy/assets/156431112/9fbe23da-fee1-4107-be00-d726bcf9bd07)
+### 多场景生成
 
+校园、实验室、汇报、角色设定和跳舞场景：
 
-You can compare with real images:
-https://www.google.com/search?client=opera&hs=eLO&sca_esv=597261711&sxsrf=ACQVn0-1AWaw7YbryEzXe0aIpP_FVzMifw:1704916367322&q=Pokemon+Dawn+Grand+Festival&tbm=isch&source=lnms&sa=X&ved=2ahUKEwiIr8izzNODAxU2RaQEHVtJBrQQ0pQJegQIDRAB&biw=1534&bih=706&dpr=1.25
+![小龙多场景生成](examples/tldragon/assets/generation_tests.png)
 
+案例工作流：
 
+- [训练工作流](examples/tldragon/01_train_lora.json)
+- [生成工作流](examples/tldragon/02_generate.json)
 
-IMPORTANT NOTES:
-This node is confirmed to work for SD 1.5, SD2.0, SDTurbo and LCM.
-But I have no idea about SDXL. If someone could test it and confirm or infirm, I’d appreciate ^^. I know the LoRA project included custom scripts for SDXL, so maybe it’s more complicated.
+## 已适配环境
 
-----
+本分支已在以下环境实际完成训练与生成验证：
 
-TROUBLESHOOT:
-The very first version I published online had very strict requirements, which made conflicts likely. I've reduced requirements to the bare minimum, but conflicts can still arise. If that happens to you, please let me know!
+| 组件 | 版本 |
+|---|---|
+| ComfyUI | 0.37.0 |
+| Python | 3.12.12 |
+| PyTorch | 2.10.0+cu128 |
+| transformers | 5.2.0 |
+| diffusers | 0.37.0 |
+| accelerate | 1.12.0 |
+| xformers | 0.0.35 |
+| bitsandbytes | 0.49.2 |
+| GPU | NVIDIA RTX 3090 24 GB |
 
-"No module X found" : This error happens when Python can't find the required modules for the running program. For ComfyUI, it often happens if you forgot to install requirements for the custom node.
-But it can also happen if you installed the requirements in the wrong folder! If your ComfyUI folder has a virtual environment (venv), make sure to enable it before installing requirements.
+## 兼容修复内容
 
+1. `transformers >= 5` 移除 `CLIPFeatureExtractor` 后，使用 `CLIPImageProcessor` 兼容回退。
+2. 加载新版 CLIP 时移除不再接受的 `text_model.embeddings.position_ids`。
+3. 固定调用本节点自带的 `sd-scripts/train_network.py`，避免机器上存在多个同名目录时选错脚本。
+4. 使用节点目录内缓存的 CLIP tokenizer，并启用离线模式，避免训练时卡在网络请求。
+5. 使用当前 ComfyUI 的 Python 解释器启动 `accelerate`。
+6. 训练子进程使用 `check=True`，训练失败会正确向上报错，不再静默显示成功。
+7. 修复随机种子表达式的位运算写法。
 
-"Something about cuda.dll missing" : there's a lot of variants of this error, but they're all the same problem (hopefully): it happens if you haven't installed CUDA properly (or, again, if it's not installed in the right folder). Here is what to do in this case:
-1) Open a command prompt and make absolutely sure that it's the right environment.
-2) Go there: https://pytorch.org and scroll down. Follow the instructions to get a line of code, something like pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121. Copy-paste the line the website gives you into the command prompt you opened and press Enter. This will install CUDA.
+完整补丁位于：
 
+```text
+patches/lora-training-in-comfy_compat.patch
+```
 
+历史兼容快照位于：
 
-I own a Windows 10 machine with a RTX 3060. I can't test for Linux, for MAC, for AMD GPUs and other weird situations x).
+```text
+patches/lora-training-in-comfy_python312_torch210.patch
+```
 
+## 安装
 
+### 1. 放入 ComfyUI
 
+在 ComfyUI 的 `custom_nodes` 目录中执行：
 
-----
+```bash
+cd /path/to/ComfyUI/custom_nodes
+git clone git@github.com:IammyselfYBX/Lora-Training-in-Comfy.git
+```
 
-TO GO FURTHER
-Even the Advanced node doens't include all inputs available for LoRA training, but you can find them all in the script train.py! All of that can be modified by the user directly within the script.
+已有安装则更新：
 
+```bash
+cd /path/to/ComfyUI/custom_nodes/Lora-Training-in-Comfy
+git pull
+```
 
-----
-SHOUTOUT
-This is based off an existing project, lora-scripts, available on github. Thanks to the author for making a project that launches training with a single script!
+### 2. 依赖
 
-I took that project, got rid of the UI, translated this “launcher script” into Python, and adapted it to ComfyUI. Still took a few hours, but I was seeing the light all the way, it was a breeze thanks to the original project ^^.
+当前 ComfyUI 环境通常已经包含训练所需的大部分依赖。**不要直接执行旧的 `requirements.txt`**，因为它包含较老的版本锁定，可能降级 ComfyUI 共享环境。
+
+先确认以下模块可以导入：
+
+```bash
+python - <<'PY'
+import torch, accelerate, transformers, diffusers, pytorch_lightning
+import safetensors, xformers, bitsandbytes
+print('dependencies ok')
+PY
+```
+
+如果只缺少个别包，再使用 ComfyUI 当前 Python 环境单独安装，例如：
+
+```bash
+python -m pip install tensorboard toml einops ftfy open-clip-torch
+```
+
+### 3. 重启 ComfyUI
+
+重启 ComfyUI 后，在节点搜索中查找：
+
+```text
+Lora Training in ComfyUI
+Lora Training in ComfyUI (Advanced)
+```
+
+节点分类：
+
+```text
+LJRE/LORA
+```
+
+## 数据集格式
+
+训练目录必须按 `数字_概念名` 命名：
+
+```text
+training_data/
+└── 10_tldragon_mascot/
+    ├── image_01.jpg
+    ├── image_01.txt
+    ├── image_02.jpg
+    └── image_02.txt
+```
+
+节点中的 `data_path` 要填写**包含该子目录的父目录**，不是图片目录本身。
+
+caption 建议第一条固定写触发词：
+
+```text
+tldragon, chibi red-orange baby dragon mascot, glossy scales, cream belly, golden antlers, 3D cartoon render
+```
+
+## 小龙案例参数
+
+| 参数 | 值 |
+|---|---|
+| 底模 | `SD1.5/2.5D/2.5D_disneyPixarCartoon_v10.safetensors` |
+| 数据目录 | `10_tldragon_mascot` |
+| 图片数 | 8 张唯一图 |
+| 每张重复 | 10 次 |
+| Epochs | 10 |
+| 总步数 | 800 |
+| Batch size | 1 |
+| 分辨率 | 512×512 |
+| 网络 | LoRA rank 32 / alpha 32 |
+| 优化器 | AdamW8bit |
+| 精度 | fp16 |
+| 输出 | `models/loras/tldragon_mascot_v1.safetensors` |
+
+推荐生成强度：
+
+```text
+strength_model = 0.88
+strength_clip  = 0.78
+```
+
+推荐提示词：
+
+```text
+tldragon, cute chibi red-orange baby dragon mascot, oversized head, small body, glossy red scales, cream belly, golden antlers, big sparkling eyes, cheerful smile, 3D cartoon render, Pixar style, soft lighting, vibrant colors, [scene], [action], [prop]
+```
+
+## 使用流程
+
+1. 在 ComfyUI 中打开训练工作流。
+2. 确认 `data_path` 指向数据集父目录。
+3. 运行训练，等待日志出现 `model saved`。
+4. 刷新 LoRA 列表。
+5. 打开生成工作流，修改 `[scene]`、`[action]`、`[prop]` 对应的场景描述。
+6. 一次生成多张，选择最稳定的 LoRA 强度和种子。
+
+## 适用与不适用场景
+
+### 适用
+
+- SD1.5 角色、人物、画风 LoRA
+- SD2.x LoRA
+- 基于 SD1/SD2 的 Turbo、LCM 衍生底模
+- 8–40 张左右的小样本角色或风格训练
+- 在 ComfyUI 内完成数据准备、训练和即时测试
+
+### 不适用
+
+- SDXL LoRA
+- SD3.5 LoRA
+- FLUX LoRA
+- Qwen-Image、LTX、Wan 等新架构
+- 视频模型或非 Stable Diffusion 扩散模型
+
+仓库虽然包含 `sdxl_train_network.py`，但当前 ComfyUI 节点没有接入 SDXL 训练路径。
+
+## 仓库结构
+
+```text
+Lora-Training-in-Comfy/
+├── examples/tldragon/       # 小龙案例、工作流和结果图
+├── patches/                 # 当前兼容补丁和历史快照
+├── sd-scripts/              # 内置训练脚本
+├── train.py                 # ComfyUI 节点实现
+├── __init__.py
+└── README.md
+```
+
+## 上游项目
+
+- 上游仓库：<https://github.com/LarryJane491/Lora-Training-in-Comfy>
+- 原教程：<https://www.reddit.com/r/StableDiffusion/comments/193hqkz/lora_training_directly_in_comfyui/>
+
+本分支保留上游节点的基本使用方式，只在兼容性、错误处理和示例文档上做维护。

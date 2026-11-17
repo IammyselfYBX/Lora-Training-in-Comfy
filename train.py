@@ -1,6 +1,7 @@
 # Original LoRA train script by @Akegarasu ; rewritten in Python by LJRE.
 import subprocess
 import os
+import sys
 import folder_paths
 import random
 from comfy import model_management
@@ -79,8 +80,12 @@ mixed_precision = 'fp16'
 caption_extension = '.txt'
 
 
-os.environ['HF_HOME'] = "huggingface"
-os.environ['XFORMERS_FORCE_DISABLE_TRITON'] = "1"
+os.environ["HF_HOME"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "huggingface")
+# This node ships a cached CLIP tokenizer. Offline mode prevents a training run
+# from hanging on an unavailable Hugging Face connection.
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["XFORMERS_FORCE_DISABLE_TRITON"] = "1"
 ext_args = []
 launch_args = []
 
@@ -137,7 +142,7 @@ class LoraTraininginComfy:
         #print(train_data_dir)
 
         #generates a random seed
-        theseed = random.randint(0, 2^32-1)
+        theseed = random.randint(0, (1 << 32) - 1)
         
         if multi_gpu:
             launch_args.append("--multi_gpu")
@@ -213,18 +218,13 @@ class LoraTraininginComfy:
 
         pretrained_model = folder_paths.get_full_path("checkpoints", ckpt_name)
         
-        #Looking for the training script.
-        progpath = os.getcwd()
-        nodespath=''
-        for dirpath, dirnames, filenames in os.walk(progpath):
-             if 'sd-scripts' in dirnames:
-               nodespath= dirpath + '/sd-scripts/train_network.py'
-               print(nodespath)
-
-        nodespath = nodespath.replace( "\\", "/")
-        command = "python -m accelerate.commands.launch " + launchargs + f'--num_cpu_threads_per_process=8 "{nodespath}" --enable_bucket --pretrained_model_name_or_path={pretrained_model} --train_data_dir="{train_data_dir}" --output_dir="{output_dir}" --logging_dir="./logs" --log_prefix={output_name} --resolution={resolution} --network_module={network_module} --max_train_epochs={max_train_epoches} --learning_rate={lr} --unet_lr={unet_lr} --text_encoder_lr={text_encoder_lr} --lr_scheduler={lr_scheduler} --lr_warmup_steps={lr_warmup_steps} --lr_scheduler_num_cycles={lr_restart_cycles} --network_dim={network_dim} --network_alpha={network_alpha} --output_name={output_name} --train_batch_size={batch_size} --save_every_n_epochs={save_every_n_epochs} --mixed_precision="fp16" --save_precision="fp16" --seed={theseed} --cache_latents --prior_loss_weight=1 --max_token_length=225 --caption_extension=".txt" --save_model_as={save_model_as} --min_bucket_reso={min_bucket_reso} --max_bucket_reso={max_bucket_reso} --keep_tokens={keep_tokens} --xformers --shuffle_caption ' + extargs
+        # Use this node's bundled sd-scripts explicitly. Other custom nodes may
+        # also contain a directory named sd-scripts, so walking ComfyUI is unsafe.
+        nodespath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sd-scripts", "train_network.py")
+        nodespath = nodespath.replace("\\", "/")
+        command = f'"{sys.executable}" -m accelerate.commands.launch ' + launchargs + f'--num_cpu_threads_per_process=8 "{nodespath}" --enable_bucket --pretrained_model_name_or_path={pretrained_model} --train_data_dir="{train_data_dir}" --output_dir="{output_dir}" --logging_dir="./logs" --log_prefix={output_name} --resolution={resolution} --network_module={network_module} --max_train_epochs={max_train_epoches} --learning_rate={lr} --unet_lr={unet_lr} --text_encoder_lr={text_encoder_lr} --lr_scheduler={lr_scheduler} --lr_warmup_steps={lr_warmup_steps} --lr_scheduler_num_cycles={lr_restart_cycles} --network_dim={network_dim} --network_alpha={network_alpha} --output_name={output_name} --train_batch_size={batch_size} --save_every_n_epochs={save_every_n_epochs} --mixed_precision="fp16" --save_precision="fp16" --seed={theseed} --cache_latents --prior_loss_weight=1 --max_token_length=225 --caption_extension=".txt" --save_model_as={save_model_as} --min_bucket_reso={min_bucket_reso} --max_bucket_reso={max_bucket_reso} --keep_tokens={keep_tokens} --xformers --shuffle_caption ' + extargs
         #print(command)
-        subprocess.run(command, shell=True)
+        subprocess.run(command, shell=True, check=True)
         print("Train finished")
         #input()
         return ()
@@ -333,7 +333,7 @@ class LoraTraininginComfyAdvanced:
         dropout = f"{networkDropout}"
 
         #generates a random seed
-        theseed = random.randint(0, 2^32-1)
+        theseed = random.randint(0, (1 << 32) - 1)
         
         if multi_gpu:
             launch_args.append("--multi_gpu")
@@ -409,19 +409,14 @@ class LoraTraininginComfyAdvanced:
 
         pretrained_model = folder_paths.get_full_path("checkpoints", ckpt_name)
         
-        #Looking for the training script.
-        progpath = os.getcwd()
-        nodespath=''
-        for dirpath, dirnames, filenames in os.walk(progpath):
-             if 'sd-scripts' in dirnames:
-               nodespath= dirpath + '/sd-scripts/train_network.py'
-               print(nodespath)
-
-        nodespath = nodespath.replace( "\\", "/")
+        # Use this node's bundled sd-scripts explicitly. Other custom nodes may
+        # also contain a directory named sd-scripts, so walking ComfyUI is unsafe.
+        nodespath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sd-scripts", "train_network.py")
+        nodespath = nodespath.replace("\\", "/")
         
-        command = "python -m accelerate.commands.launch " + launchargs + f'--num_cpu_threads_per_process=8 "custom_nodes/Lora-Training-in-Comfy/sd-scripts/train_network.py" --enable_bucket --pretrained_model_name_or_path={pretrained_model} --train_data_dir="{train_data_dir}" --output_dir="{output_dir}" --logging_dir="./logs" --log_prefix={output_name} --resolution={resolution} --network_module={network_module} --max_train_epochs={max_train_epoches} --learning_rate={lr} --unet_lr={unet_lr} --text_encoder_lr={text_encoder_lr} --lr_scheduler={lr_scheduler} --lr_warmup_steps={lr_warmup_steps} --lr_scheduler_num_cycles={lr_restart_cycles} --network_dim={network_dim} --network_alpha={network_alpha} --output_name={output_name} --train_batch_size={batch_size} --save_every_n_epochs={save_every_n_epochs} --mixed_precision="fp16" --save_precision="fp16" --seed={theseed} --cache_latents --prior_loss_weight=1 --max_token_length=225 --caption_extension=".txt" --save_model_as={save_model_as} --min_bucket_reso={min_bucket_reso} --max_bucket_reso={max_bucket_reso} --keep_tokens={keep_tokens} --xformers --shuffle_caption ' + extargs
+        command = f'"{sys.executable}" -m accelerate.commands.launch ' + launchargs + f'--num_cpu_threads_per_process=8 "{nodespath}" --enable_bucket --pretrained_model_name_or_path={pretrained_model} --train_data_dir="{train_data_dir}" --output_dir="{output_dir}" --logging_dir="./logs" --log_prefix={output_name} --resolution={resolution} --network_module={network_module} --max_train_epochs={max_train_epoches} --learning_rate={lr} --unet_lr={unet_lr} --text_encoder_lr={text_encoder_lr} --lr_scheduler={lr_scheduler} --lr_warmup_steps={lr_warmup_steps} --lr_scheduler_num_cycles={lr_restart_cycles} --network_dim={network_dim} --network_alpha={network_alpha} --output_name={output_name} --train_batch_size={batch_size} --save_every_n_epochs={save_every_n_epochs} --mixed_precision="fp16" --save_precision="fp16" --seed={theseed} --cache_latents --prior_loss_weight=1 --max_token_length=225 --caption_extension=".txt" --save_model_as={save_model_as} --min_bucket_reso={min_bucket_reso} --max_bucket_reso={max_bucket_reso} --keep_tokens={keep_tokens} --xformers --shuffle_caption ' + extargs
         #print(command)
-        subprocess.run(command, shell=True)
+        subprocess.run(command, shell=True, check=True)
         print("Train finished")
         #input()
         return ()

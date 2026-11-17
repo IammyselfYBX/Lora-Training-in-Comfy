@@ -9,7 +9,12 @@ import numpy as np
 import PIL.Image
 import torch
 from packaging import version
-from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
+try:
+    from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
+except ImportError:
+    # transformers >= 5 removed CLIPFeatureExtractor; CLIPImageProcessor is the compatible replacement.
+    from transformers import CLIPImageProcessor as CLIPFeatureExtractor
+    from transformers import CLIPTextModel, CLIPTokenizer
 
 import diffusers
 from diffusers import SchedulerMixin, StableDiffusionPipeline
